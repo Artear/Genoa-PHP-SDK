@@ -1,0 +1,26 @@
+{
+  "name": "Artear/Genoa",
+  "description": "A PHP Library to interface with Genoa Api",
+  "type": "library",
+  "license": "MIT",
+  "version": "0.0.1",
+  "authors": [
+    {
+      "name": "ARTEAR",
+      "email": "email@example.com"
+    }
+  ],
+  "require": {
+    "php": ">=5.2.0"
+  },
+  "require-dev": {
+    "satooshi/php-coveralls": "dev-master",
+    "phpunit/phpcov": "3.1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "genoa\\": "src/",
+      "genoaTest\\": "test/"
+    }
+  }
+}
