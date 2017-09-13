@@ -65,4 +65,29 @@ class Content {
       throw $e;
     }
   }
+
+  /**
+   * @param integer $content_id
+   * @param string $relative_file_path
+   * @return mixed
+   * @throws \Exception
+   */
+  public function updateHighlightThumbnial($content_id, $relative_file_path) {
+    try {
+
+      $endpoint = $this->client->getApiHost() . "/content/image";
+      $api = new Api($endpoint);
+      $api->addHeader("Content-Type: multipart/form-data");
+
+      $payload = [];
+      $payload['access_token'] = $this->client->getAccessToken();
+      $payload['content_id'] = $content_id;
+      $payload['file'] = '@' . $relative_file_path;
+
+      return $api->post($payload);
+
+    } catch (\Exception $e) {
+      throw $e;
+    }
+  }
 }

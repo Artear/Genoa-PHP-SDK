@@ -41,27 +41,19 @@ class Api {
   }
 
   /**
+   * @param string $header
+   * @return void
+   */
+  public function addHeader($header) {
+    $this->headers[] = $header;
+  }
+
+  /**
    * @param null $payload
    * @return mixed
    */
-  public function get($payload = null) {
+  public function get($payload = NULL) {
     return $this->call($this->host, $payload, self::METHOD_GET);
-  }
-
-  /**
-   * @param $payload
-   * @return mixed
-   */
-  public function post($payload) {
-    return $this->call($this->host, $payload, self::METHOD_POST);
-  }
-
-  /**
-   * @param $payload
-   * @return mixed
-   */
-  public function put($payload = null) {
-    return $this->call($this->host, $payload, self::METHOD_PUT);
   }
 
   /**
@@ -122,7 +114,9 @@ class Api {
       $url .= '?' . http_build_query($payload);
     }
 
-    $this->headers[] = 'Content-Type: application/json';
+    if (empty($this->headers)) {
+      $this->headers[] = 'Content-Type: application/json';
+    }
 
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -148,5 +142,21 @@ class Api {
     return $response;
 
     // @codeCoverageIgnoreEnd
+  }
+
+  /**
+   * @param $payload
+   * @return mixed
+   */
+  public function post($payload) {
+    return $this->call($this->host, $payload, self::METHOD_POST);
+  }
+
+  /**
+   * @param $payload
+   * @return mixed
+   */
+  public function put($payload = NULL) {
+    return $this->call($this->host, $payload, self::METHOD_PUT);
   }
 }
