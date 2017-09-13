@@ -75,13 +75,11 @@ class Content {
   public function updateHighlightThumbnial($content_id, $relative_file_path) {
     try {
 
-      $endpoint = $this->client->getApiHost() . "/content/image";
+      $endpoint = $this->client->getApiHost() . "/content/image?access_token=" . $this->client->getAccessToken() . "&content_id=" . $content_id;
       $api = new Api($endpoint);
       $api->addHeader("Content-Type: multipart/form-data");
 
       $payload = [];
-      $payload['access_token'] = $this->client->getAccessToken();
-      $payload['content_id'] = $content_id;
       $payload['file'] = '@' . $relative_file_path;
 
       return $api->post($payload);
