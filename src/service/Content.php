@@ -26,6 +26,7 @@ class Content {
     try {
       $endpoint = $this->client->getApiHost() . "/content/" . $content_id;
       $api = new Api($endpoint);
+      $api->addHeader("Content-Type: application/json");
 
       $payload = array(
         'access_token' => $this->client->getAccessToken()
@@ -57,6 +58,7 @@ class Content {
     try {
       $endpoint = $this->client->getApiHost() . "/content/" . $content_id;
       $api = new Api($endpoint);
+      $api->addHeader("Content-Type: application/json");
 
       $payload['access_token'] = $this->client->getAccessToken();
       return $api->put($payload);
@@ -67,22 +69,18 @@ class Content {
   }
 
   /**
-   * @param integer $content_id
-   * @param string $relative_file_path
-   * @return mixed
+   * @param $content_id
+   * @param string $path
+   * @param string $mimetype
+   * @param string $name
+   * @return string
    * @throws \Exception
    */
-  public function updateHighlightThumbnial($content_id, $relative_file_path) {
+  public function updateHighlightThumbnial($content_id, $path, $mimetype, $name) {
     try {
-
       $endpoint = $this->client->getApiHost() . "/content/image?access_token=" . $this->client->getAccessToken() . "&content_id=" . $content_id;
       $api = new Api($endpoint);
-      $api->addHeader("Content-Type: multipart/form-data");
-
-      $payload = [];
-      $payload['file'] = '@' . $relative_file_path;
-
-      return $api->post($payload);
+      return $api->uploadFile($path, $mimetype, $name);
 
     } catch (\Exception $e) {
       throw $e;

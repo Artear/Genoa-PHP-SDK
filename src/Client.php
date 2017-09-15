@@ -39,6 +39,7 @@ class Client {
 
       $endpoint = $this->host . "auth/accessToken";
       $api = new Api($endpoint);
+      $api->addHeader("Content-Type: application/json");
       $response = $api->post(new AuthorizationAccess($this->client_id, $this->secret_id));
       return $response->access_token;
     } catch (\Exception $e) {
@@ -56,6 +57,7 @@ class Client {
       try {
         $endpoint = $this->host . 'auth/token/client_id/' . $this->client_id . '/access_token/' . $this->access_token;
         $api = new Api($endpoint);
+        $api->addHeader("Content-Type: application/json");
         $api->put();
 
         return $this->access_token;
@@ -83,6 +85,7 @@ class Client {
     try {
       $endpoint = $this->host . 'auth/refreshToken';
       $api = new Api($endpoint);
+      $api->addHeader("Content-Type: application/json");
       return $api->post(new AuthorizationAccess($this->client_id, $this->secret_id));
     } catch (\Exception $e) {
       throw $e;

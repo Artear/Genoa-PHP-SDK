@@ -92,30 +92,31 @@ class Api {
     $ch = curl_init();
     curl_setopt_array($ch, $curl_options);
 
-    $json_data = json_encode($payload);
+    if (is_object($payload) || is_array($payload)) {
+      $data = json_encode($payload);
+    }
+    else {
+      $data = $payload;
+    }
 
     if ($method === self::METHOD_POST) {
       curl_setopt($ch, CURLOPT_POST, TRUE);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
     }
     elseif ($method === self::METHOD_PUT) {
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
     }
     elseif ($method === self::METHOD_DELETE) {
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
     }
     elseif ($method === self::METHOD_PATCH) {
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
     }
     else {
       $url .= '?' . http_build_query($payload);
-    }
-
-    if (empty($this->headers)) {
-      $this->headers[] = 'Content-Type: application/json';
     }
 
     curl_setopt($ch, CURLOPT_URL, $url);
@@ -158,5 +159,39 @@ class Api {
    */
   public function put($payload = NULL) {
     return $this->call($this->host, $payload, self::METHOD_PUT);
+  }
+
+  /**
+   * @param $file_path
+   * @param $mimetype
+   * @param $filename
+   * @return string
+   */
+  public function uploadFile($file_path, $mimetype, $filename) {
+
+    $file = new \CURLFile($file_path, $mimetype, $filename);
+
+    $headers = array("Content-Type:multipart/form-data");
+    $postfields = array("file" => $file);
+    $ch = curl_init();
+    $options = array(
+      CURLOPT_URL => $this->host,
+      CURLOPT_HEADER => TRUE,
+      CURLOPT_POST => 1,
+      CURLOPT_HTTPHEADER => $headers,
+      CURLOPT_POSTFIELDS => $postfields,
+      CURLOPT_RETURNTRANSFER => TRUE
+    );
+
+    curl_setopt_array($ch, $options);
+    $result = curl_exec($ch);
+
+    if (curl_errno($ch)) {
+      return curl_error($ch);
+    }
+
+    curl_close($ch);
+
+    return json_encode($result);
   }
 }
