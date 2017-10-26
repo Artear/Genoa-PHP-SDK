@@ -86,4 +86,27 @@ class Content {
       throw $e;
     }
   }
+  
+  /**
+   * Return the qualities of the video
+   * @param mixed $content_id
+   * @return mixed
+   * @throws \Exception
+   */
+  public function getQualitiesById($content_id) {
+    try {
+      $endpoint = $this->client->getApiHost() . "/content/qualities";
+      $api = new Api($endpoint);
+      $api->addHeader("Content-Type: application/json");
+
+      $payload = array(
+        'access_token' => $this->client->getAccessToken(),
+        'content_id' => $content_id,
+      );
+
+      return $api->get($payload);
+    } catch (\Exception $e) {
+      throw $e;
+    }
+  }
 }
