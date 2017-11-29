@@ -116,4 +116,66 @@ class Content {
       throw $e;
     }
   }
+
+  /**
+   * Return the last $limit contents from the publisher (defaults to 20)
+   * @param number $limit
+   * @param number $order_by
+   * @return array
+   * @throws \Exception
+   */
+  public function getLatestContents($limit = 20) {
+    try {
+      $endpoint = $this->client->getApiHost() . "/content/list";
+      $api = new Api($endpoint);
+      $api->asJSON();
+
+      $payload = array(
+        'access_token' => $this->client->getAccessToken(),
+        'pids' => $this->publisher_id,
+        'limit' => $limit,
+        'order' => false
+      );
+
+      return $api->get($payload);
+    } catch (\Exception $e){
+      throw $e;
+    }
+  }
+
+  /**
+   * Return category contents
+   * @param number $category_id
+   * @param number $page
+   * @return array
+   * @throws \Exception
+   */
+  public function getCategoryContents($category_id, $page = 1) {
+    try {
+      $endpoint = $this->client->getApiHost() . "/category";
+      $api = new Api($endpoint);
+      $api->asJSON();
+
+      $payload = array(
+        'access_token' => $this->client->getAccessToken(),
+        'pubs_id' => $this->publisher_id,
+        'cid' => $category_id,
+        'page' => $page
+      );
+
+      return $api->get($payload);
+    } catch (\Exception $e){
+      throw $e;
+    }
+  }
+
+  /**
+   * Return deleted contents
+   * @param number $page
+   * @return array
+   * @throws \Exception
+   */
+  public function getDeletedContents($page = 1) {
+    return $this->getCategoryContents(0, $page);
+  }
 }
