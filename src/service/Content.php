@@ -28,7 +28,7 @@ class Content {
     try {
       $endpoint = $this->client->getApiHost() . "/content/" . $content_id;
       $api = new Api($endpoint);
-      $api->addHeader("Content-Type: application/json");
+      $api->asJSON();
 
       $payload = array(
         'access_token' => $this->client->getAccessToken()
@@ -80,10 +80,15 @@ class Content {
    */
   public function updateHighlightThumbnail($content_id, $path, $mimetype, $name) {
     try {
-      $endpoint = $this->client->getApiHost() . "/content/image?access_token=" . $this->client->getAccessToken() . "&content_id=" . $content_id;
-      $api = new Api($endpoint);
-      return $api->uploadFile($path, $mimetype, $name);
+      $query = http_build_query(array(
+        'access_token' => $this->client->getAccessToken(),
+        'content_id' => $content_id
+      ));
 
+      $endpoint = $this->client->getApiHost() . "/content/image?" . $query;
+      $api = new Api($endpoint);
+
+      return $api->uploadFile($path, $mimetype, $name);
     } catch (\Exception $e) {
       throw $e;
     }
