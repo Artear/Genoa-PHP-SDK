@@ -150,6 +150,7 @@ class Api {
 
     $result = curl_exec($ch);
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $response = json_decode($result);
 
     if (curl_error($ch) || $httpcode >= 400) {
       $errno = curl_errno($ch);
@@ -157,11 +158,9 @@ class Api {
         throw new Exception(curl_strerror($errno));
       }
       else {
-        throw new Exception("Error Code: " . $httpcode);
+        throw new Exception("API Error (code $httpcode): {$response->error}");
       }
     }
-
-    $response = json_decode($result);
 
     curl_close($ch);
     return $response;
