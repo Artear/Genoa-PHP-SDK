@@ -76,7 +76,7 @@ class Content {
    * @return string
    * @throws \Exception
    */
-  public function updateHighlightThumbnial($content_id, $path, $mimetype, $name) {
+  public function updateHighlightThumbnail($content_id, $path, $mimetype, $name) {
     try {
       $endpoint = $this->client->getApiHost() . "/content/image?access_token=" . $this->client->getAccessToken() . "&content_id=" . $content_id;
       $api = new Api($endpoint);
