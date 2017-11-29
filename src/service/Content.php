@@ -58,7 +58,7 @@ class Content {
     try {
       $endpoint = $this->client->getApiHost() . "/content/" . $content_id;
       $api = new Api($endpoint);
-      $api->addHeader("Content-Type: application/json");
+      $api->asJSON();
 
       $payload['access_token'] = $this->client->getAccessToken();
       return $api->put($payload);
@@ -97,7 +97,7 @@ class Content {
     try {
       $endpoint = $this->client->getApiHost() . "/content/qualities";
       $api = new Api($endpoint);
-      $api->addHeader("Content-Type: application/json");
+      $api->asJSON();
 
       $payload = array(
         'access_token' => $this->client->getAccessToken(),
