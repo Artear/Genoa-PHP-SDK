@@ -1,22 +1,23 @@
 # GENOA PHP SDK
-A PHP Library to interface with Genoa Api
 
-### Run docker container
-´´´
-$ docker-composer up -d
-´´´
+A PHP Library to interface with Genoa API
 
-### Access docker container
-´´´
-$ docker exec -it genoaphpsdk_web_1 bash
-´´´
+## Development
+ 
+### Requirements
 
-### Into the container
-´´´
+* Docker
+* Docker Compose
+
+### Run container and install dependencies
+```
+$ docker-compose run --rm app
 $ composer install
-´´´
+```
 
-#### Check test cases
-´´´
+### Run test cases inside container
+```
 $ phpunit
-´´´
+```
+
+
