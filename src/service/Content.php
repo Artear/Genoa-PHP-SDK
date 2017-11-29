@@ -8,13 +8,15 @@ use genoa\Client;
 class Content {
 
   private $client;
+  private $publisher_id;
 
   /**
    * Content constructor.
    * @param \genoa\Client $client
    */
-  public function __construct(Client $client) {
+  public function __construct(Client $client, $publisher_id) {
     $this->client = $client;
+    $this->publisher_id = $publisher_id;
   }
 
   /**
