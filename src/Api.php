@@ -35,17 +35,28 @@ class Api {
   /**
    * @param $key
    * @param $value
+   * @return Api
    */
   public function setCurlOption($key, $value) {
     $this->curl_options[$key] = $value;
+    return $this;
   }
 
   /**
    * @param string $header
-   * @return void
+   * @return Api
    */
   public function addHeader($header) {
     $this->headers[] = $header;
+    return $this;
+  }
+
+  /**
+   * @return Api
+   */
+  public function asJSON() {
+    $this->addHeader("Content-Type: application/json");
+    return $this;
   }
 
   /**
@@ -57,6 +68,22 @@ class Api {
   }
 
   /**
+   * @param $payload
+   * @return mixed
+   */
+  public function post($payload) {
+    return $this->call($this->host, $payload, self::METHOD_POST);
+  }
+
+  /**
+   * @param $payload
+   * @return mixed
+   */
+  public function put($payload = NULL) {
+    return $this->call($this->host, $payload, self::METHOD_PUT);
+  }
+
+  /**
    * @param $url
    * @param $payload
    * @param $method
@@ -64,7 +91,6 @@ class Api {
    * @throws \Exception
    */
   public function call($url, $payload, $method) {
-
     if (!in_array($method, self::METHODS)) {
       throw new Exception('The method ' . $method . ' is not supported');
     }
@@ -141,22 +167,6 @@ class Api {
     return $response;
 
     // @codeCoverageIgnoreEnd
-  }
-
-  /**
-   * @param $payload
-   * @return mixed
-   */
-  public function post($payload) {
-    return $this->call($this->host, $payload, self::METHOD_POST);
-  }
-
-  /**
-   * @param $payload
-   * @return mixed
-   */
-  public function put($payload = NULL) {
-    return $this->call($this->host, $payload, self::METHOD_PUT);
   }
 
   /**
