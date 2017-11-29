@@ -2,10 +2,10 @@
 
 namespace genoa;
 
-
 use Exception;
 
-class Api {
+class ApiCall {
+
   const METHOD_DELETE = "DELETE";
   const METHOD_POST = "POST";
   const METHOD_PUT = "PUT";
@@ -18,9 +18,10 @@ class Api {
     self::METHOD_GET,
     self::METHOD_PATCH
   );
-  public $curl_options;
-  private $host = NULL;
-  private $headers = array();
+
+  protected $curl_options;
+  protected $host = NULL;
+  protected $headers = array();
 
   /**
    * Api constructor.
@@ -33,9 +34,16 @@ class Api {
   }
 
   /**
+   * @return string
+   */
+  public function getHost() {
+    return $this->host;
+  }
+
+  /**
    * @param $key
    * @param $value
-   * @return Api
+   * @return ApiCall
    */
   public function setCurlOption($key, $value) {
     $this->curl_options[$key] = $value;
@@ -44,18 +52,18 @@ class Api {
 
   /**
    * @param string $header
-   * @return Api
+   * @return ApiCall
    */
-  public function addHeader($header) {
-    $this->headers[] = $header;
+  public function addHeader($key, $value) {
+    $this->headers[strtolower($key)] = $value;
     return $this;
   }
 
   /**
-   * @return Api
+   * @return ApiCall
    */
   public function asJSON() {
-    $this->addHeader("Content-Type: application/json");
+    $this->addHeader('content-type', 'application/json');
     return $this;
   }
 
@@ -91,15 +99,11 @@ class Api {
    * @throws \Exception
    */
   public function call($url, $payload, $method) {
-    if (!in_array($method, self::METHODS)) {
-      throw new Exception('The method ' . $method . ' is not supported');
-    }
-
-    if ($url == NULL) {
-      throw new Exception("The host can't be null");
-    }
+    $request = $this->prepareCurlRequest($url, $payload, $method);
 
     // @codeCoverageIgnoreStart
+
+    $ch = curl_init();
 
     $default_curl_options = [
       CURLOPT_VERBOSE => FALSE,
@@ -114,39 +118,27 @@ class Api {
     if (isset($this->curl_options) && is_array($this->curl_options)) {
       $curl_options = array_replace($default_curl_options, $this->curl_options);
     }
-
-    $ch = curl_init();
     curl_setopt_array($ch, $curl_options);
-
-    if (is_object($payload) || is_array($payload)) {
-      $data = json_encode($payload);
-    }
-    else {
-      $data = $payload;
-    }
 
     if ($method === self::METHOD_POST) {
       curl_setopt($ch, CURLOPT_POST, TRUE);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['data']);
     }
     elseif ($method === self::METHOD_PUT) {
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['data']);
     }
     elseif ($method === self::METHOD_DELETE) {
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['data']);
     }
     elseif ($method === self::METHOD_PATCH) {
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-    }
-    else {
-      $url .= '?' . http_build_query($payload);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['data']);
     }
 
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
+    curl_setopt($ch, CURLOPT_URL, $request['url']);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $request['headers']);
 
     $result = curl_exec($ch);
     $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -155,10 +147,10 @@ class Api {
     if (curl_error($ch) || $httpcode >= 400) {
       $errno = curl_errno($ch);
       if ($errno > 0) {
-        throw new Exception(curl_strerror($errno));
+        throw new ApiException(curl_strerror($errno));
       }
       else {
-        throw new Exception("API Error (code $httpcode): {$response->error}");
+        throw new ApiException($response->error . " (code $httpcode)");
       }
     }
 
@@ -175,18 +167,18 @@ class Api {
    * @return string
    */
   public function uploadFile($file_path, $mimetype, $filename) {
+    $request = $this->prepareCurlFileRequest($file_path, $mimetype, $filename);
 
-    $file = new \CURLFile($file_path, $mimetype, $filename);
+    // @codeCoverageIgnoreStart
 
-    $headers = array("Content-Type:multipart/form-data");
-    $postfields = array("file" => $file);
     $ch = curl_init();
     $options = array(
-      CURLOPT_URL => $this->host,
+      CURLOPT_VERBOSE => TRUE,
+      CURLOPT_URL => $request['url'],
       CURLOPT_HEADER => TRUE,
       CURLOPT_POST => 1,
-      CURLOPT_HTTPHEADER => $headers,
-      CURLOPT_POSTFIELDS => $postfields,
+      CURLOPT_HTTPHEADER => $request['headers'],
+      CURLOPT_POSTFIELDS => $request['data'],
       CURLOPT_RETURNTRANSFER => TRUE
     );
 
@@ -200,5 +192,55 @@ class Api {
     curl_close($ch);
 
     return json_encode($result);
+
+    // @codeCoverageIgnoreEnd
   }
+
+  protected function prepareCurlRequest($url, $payload, $method) {
+    if (!in_array($method, self::METHODS)) {
+      throw new ApiException('The method ' . $method . ' is not supported');
+    }
+
+    if ($url === NULL) {
+      throw new ApiException("The host can't be null");
+    }
+
+    $body = NULL;
+    if ($method === self::METHOD_GET) {
+      $url .= '?' . http_build_query($payload);
+    } else {
+      if (is_object($payload) || is_array($payload)) {
+        $body = json_encode($payload);
+      }
+      else {
+        $body = $payload;
+      }
+    }
+
+    if (!isset($this->headers['content-type'])) {
+      $this->asJSON();
+    }
+
+    $headers =  array_map(function($key, $value) {
+      return "$key: $value";
+    }, array_keys($this->headers), array_values($this->headers));
+
+    return [
+      'method' => $method,
+      'url' => $url,
+      'headers' => $headers,
+      'body' => $body
+    ];
+  }
+
+  protected function prepareCurlFileRequest($file_path, $mimetype, $filename) {
+    $file = new \CURLFile($file_path, $mimetype, $filename);
+
+    return [
+      'url' => $this->host,
+      'headers' => array('Content-Type:multipart/form-data'),
+      'body' => array('file' => $file)
+    ];
+  }
+
 }

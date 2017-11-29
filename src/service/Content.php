@@ -2,21 +2,19 @@
 
 namespace genoa\service;
 
-use genoa\Api;
 use genoa\Client;
+use genoa\File;
 
 class Content {
 
   private $client;
-  private $publisher_id;
 
   /**
    * Content constructor.
    * @param \genoa\Client $client
    */
-  public function __construct(Client $client, $publisher_id) {
+  public function __construct(Client $client) {
     $this->client = $client;
-    $this->publisher_id = $publisher_id;
   }
 
   /**
@@ -25,19 +23,9 @@ class Content {
    * @throws \Exception
    */
   public function getContentById($content_id) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/content/" . $content_id;
-      $api = new Api($endpoint);
-      $api->asJSON();
-
-      $payload = array(
-        'access_token' => $this->client->getAccessToken()
-      );
-
-      return $api->get($payload);
-    } catch (\Exception $e) {
-      throw $e;
-    }
+    return $this
+      ->client
+      ->get("/content/{$content_id}");
   }
 
   /**
@@ -57,17 +45,9 @@ class Content {
    * @throws \Exception
    */
   public function updateContent($content_id, $payload = []) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/content/" . $content_id;
-      $api = new Api($endpoint);
-      $api->asJSON();
-
-      $payload['access_token'] = $this->client->getAccessToken();
-      return $api->put($payload);
-
-    } catch (\Exception $e) {
-      throw $e;
-    }
+    return $this
+      ->client
+      ->put("/content/{$content_id}", $payload);
   }
 
   /**
@@ -79,19 +59,14 @@ class Content {
    * @throws \Exception
    */
   public function updateHighlightThumbnail($content_id, $path, $mimetype, $name) {
-    try {
-      $query = http_build_query(array(
-        'access_token' => $this->client->getAccessToken(),
-        'content_id' => $content_id
-      ));
+    $query = array(
+      'content_id' => $content_id
+    );
+    $file = new File($path, $mimetype, $name);
 
-      $endpoint = $this->client->getApiHost() . "/content/image?" . $query;
-      $api = new Api($endpoint);
-
-      return $api->uploadFile($path, $mimetype, $name);
-    } catch (\Exception $e) {
-      throw $e;
-    }
+    return $this
+      ->client
+      ->upload("/content/image", $query, $file);
   }
   
   /**
@@ -100,82 +75,12 @@ class Content {
    * @return mixed
    * @throws \Exception
    */
-  public function getQualitiesById($content_id) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/content/qualities";
-      $api = new Api($endpoint);
-      $api->asJSON();
-
-      $payload = array(
-        'access_token' => $this->client->getAccessToken(),
-        'content_id' => $content_id,
-      );
-
-      return $api->get($payload);
-    } catch (\Exception $e) {
-      throw $e;
-    }
+  public function getQualities($content_id) {
+    return $this
+      ->client
+      ->get("/content/qualities", array(
+        'content_id' => $content_id
+      ));
   }
 
-  /**
-   * Return the last $limit contents from the publisher (defaults to 20)
-   * @param number $limit
-   * @param number $order_by
-   * @return array
-   * @throws \Exception
-   */
-  public function getLatestContents($limit = 20) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/content/list";
-      $api = new Api($endpoint);
-      $api->asJSON();
-
-      $payload = array(
-        'access_token' => $this->client->getAccessToken(),
-        'pids' => $this->publisher_id,
-        'limit' => $limit,
-        'order' => false
-      );
-
-      return $api->get($payload);
-    } catch (\Exception $e){
-      throw $e;
-    }
-  }
-
-  /**
-   * Return category contents
-   * @param number $category_id
-   * @param number $page
-   * @return array
-   * @throws \Exception
-   */
-  public function getCategoryContents($category_id, $page = 1) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/category";
-      $api = new Api($endpoint);
-      $api->asJSON();
-
-      $payload = array(
-        'access_token' => $this->client->getAccessToken(),
-        'pubs_id' => $this->publisher_id,
-        'cid' => $category_id,
-        'page' => $page
-      );
-
-      return $api->get($payload);
-    } catch (\Exception $e){
-      throw $e;
-    }
-  }
-
-  /**
-   * Return deleted contents
-   * @param number $page
-   * @return array
-   * @throws \Exception
-   */
-  public function getDeletedContents($page = 1) {
-    return $this->getCategoryContents(0, $page);
-  }
 }
