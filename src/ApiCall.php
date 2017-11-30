@@ -122,19 +122,19 @@ class ApiCall {
 
     if ($method === self::METHOD_POST) {
       curl_setopt($ch, CURLOPT_POST, TRUE);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['data']);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['body']);
     }
     elseif ($method === self::METHOD_PUT) {
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['data']);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['body']);
     }
     elseif ($method === self::METHOD_DELETE) {
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['data']);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['body']);
     }
     elseif ($method === self::METHOD_PATCH) {
       curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['data']);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, $request['body']);
     }
 
     curl_setopt($ch, CURLOPT_URL, $request['url']);
@@ -178,7 +178,7 @@ class ApiCall {
       CURLOPT_HEADER => TRUE,
       CURLOPT_POST => 1,
       CURLOPT_HTTPHEADER => $request['headers'],
-      CURLOPT_POSTFIELDS => $request['data'],
+      CURLOPT_POSTFIELDS => $request['body'],
       CURLOPT_RETURNTRANSFER => TRUE
     );
 
