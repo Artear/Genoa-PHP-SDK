@@ -2,8 +2,8 @@
 
 namespace genoa\service;
 
-use genoa\Api;
 use genoa\Client;
+use genoa\File;
 
 class Content {
 
@@ -23,19 +23,9 @@ class Content {
    * @throws \Exception
    */
   public function getContentById($content_id) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/content/" . $content_id;
-      $api = new Api($endpoint);
-      $api->addHeader("Content-Type: application/json");
-
-      $payload = array(
-        'access_token' => $this->client->getAccessToken()
-      );
-
-      return $api->get($payload);
-    } catch (\Exception $e) {
-      throw $e;
-    }
+    return $this
+      ->client
+      ->get("/content/{$content_id}");
   }
 
   /**
@@ -55,17 +45,9 @@ class Content {
    * @throws \Exception
    */
   public function updateContent($content_id, $payload = []) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/content/" . $content_id;
-      $api = new Api($endpoint);
-      $api->addHeader("Content-Type: application/json");
-
-      $payload['access_token'] = $this->client->getAccessToken();
-      return $api->put($payload);
-
-    } catch (\Exception $e) {
-      throw $e;
-    }
+    return $this
+      ->client
+      ->put("/content/{$content_id}", $payload);
   }
 
   /**
@@ -76,15 +58,15 @@ class Content {
    * @return string
    * @throws \Exception
    */
-  public function updateHighlightThumbnial($content_id, $path, $mimetype, $name) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/content/image?access_token=" . $this->client->getAccessToken() . "&content_id=" . $content_id;
-      $api = new Api($endpoint);
-      return $api->uploadFile($path, $mimetype, $name);
+  public function updateHighlightThumbnail($content_id, $path, $mimetype, $name) {
+    $query = array(
+      'content_id' => $content_id
+    );
+    $file = new File($path, $mimetype, $name);
 
-    } catch (\Exception $e) {
-      throw $e;
-    }
+    return $this
+      ->client
+      ->upload("/content/image", $query, $file);
   }
   
   /**
@@ -93,20 +75,12 @@ class Content {
    * @return mixed
    * @throws \Exception
    */
-  public function getQualitiesById($content_id) {
-    try {
-      $endpoint = $this->client->getApiHost() . "/content/qualities";
-      $api = new Api($endpoint);
-      $api->addHeader("Content-Type: application/json");
-
-      $payload = array(
-        'access_token' => $this->client->getAccessToken(),
-        'content_id' => $content_id,
-      );
-
-      return $api->get($payload);
-    } catch (\Exception $e) {
-      throw $e;
-    }
+  public function getQualities($content_id) {
+    return $this
+      ->client
+      ->get("/content/qualities", array(
+        'content_id' => $content_id
+      ));
   }
+
 }
