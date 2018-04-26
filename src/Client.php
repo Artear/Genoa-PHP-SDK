@@ -33,14 +33,14 @@ class Client {
    */
   public function getAccessToken() {
     try {
-      if ($this->access_token != NULL) {
-        return $this->verifyToken();
-      }
-
       $endpoint = $this->host . "auth/accessToken";
       $api = $this->getApiCall($endpoint);
       $response = $api->post(new AuthorizationAccess($this->client_id, $this->secret_id));
+      if ($response->expired) {
+          $response = $this->refreshToken($response->access_token);
+      }
       return $response->access_token;
+
     } catch (\Exception $e) {
       throw $e;
     }
@@ -50,40 +50,11 @@ class Client {
    * @return mixed
    * @throws \Exception
    */
-  private function verifyToken() {
-    if ($this->access_token !== NULL) {
-
-      try {
-        $endpoint = $this->host . 'auth/token/client_id/' . $this->client_id . '/access_token/' . $this->access_token;
-        $api = $this->getApiCall($endpoint);
-        $api->put();
-
-        return $this->access_token;
-      } catch (\Exception $e) {
-        try {
-          $response = $this->refreshToken();
-          $this->access_token = $response->access_token;
-          return $this->access_token;
-        } catch (\Exception $e) {
-          throw $e;
-        }
-      }
-
-    }
-    else {
-      throw new \Exception("Error Token: Can't be empty");
-    }
-  }
-
-  /**
-   * @return mixed
-   * @throws \Exception
-   */
-  private function refreshToken() {
+  private function refreshToken($expiredToken) {
     try {
-      $endpoint = $this->host . 'auth/refreshToken';
+      $endpoint = $this->host . 'auth/refreshToken?client_id='.$this->client_id.'&access_token='.$expiredToken;
       $api = $this->getApiCall($endpoint);
-      return $api->post(new AuthorizationAccess($this->client_id, $this->secret_id));
+      return $api->post();
     } catch (\Exception $e) {
       throw $e;
     }
