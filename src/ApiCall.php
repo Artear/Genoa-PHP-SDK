@@ -79,7 +79,7 @@ class ApiCall {
    * @param $payload
    * @return mixed
    */
-  public function post($payload) {
+  public function post($payload=null) {
     return $this->call($this->host, $payload, self::METHOD_POST);
   }
 
